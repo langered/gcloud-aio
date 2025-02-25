@@ -70,10 +70,11 @@ class Datastore:
     def __init__(
             self, project: Optional[str] = None,
             service_file: Optional[Union[str, IO[AnyStr]]] = None,
-            namespace: str = '', session: Optional[Session] = None,
+            database_id: str = '', namespace: str = '', session: Optional[Session] = None,
             token: Optional[Token] = None, api_root: Optional[str] = None,
     ) -> None:
         self._api_is_dev, self._api_root = init_api_root(api_root)
+        self.database_id = database_id
         self.namespace = namespace
         self.session = AioSession(session)
         self.token = token or Token(
@@ -428,7 +429,9 @@ class Datastore:
             'partitionId': {
                 'projectId': project,
                 'namespaceId': self.namespace,
+                'databaseId': self.database_id,
             },
+            'databaseId': self.database_id,
             query.json_key: query.to_repr(),
             'readOptions': options,
         }).encode('utf-8')
@@ -438,6 +441,10 @@ class Datastore:
             'Content-Length': str(len(payload)),
             'Content-Type': 'application/json',
         })
+        if self.database_id:
+            headers.update({
+                'x-goog-request-params': f'project_id={project}&database_id={self.database_id}',
+            })
 
         s = AioSession(session) if session else self.session
         resp = await s.post(

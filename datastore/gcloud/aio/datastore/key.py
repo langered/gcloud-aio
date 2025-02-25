@@ -50,10 +50,11 @@ class Key:
 
     def __init__(
         self, project: str, path: List[PathElement],
-        namespace: str = '',
+        namespace: str = '', database_id: str = ''
     ) -> None:
         self.project = project
         self.namespace = namespace
+        self.database_id = database_id
         self.path = path
 
     def __eq__(self, other: Any) -> bool:
@@ -85,6 +86,7 @@ class Key:
             'partitionId': {
                 'projectId': self.project,
                 'namespaceId': self.namespace,
+                'databaseId': self.database_id,
             },
             'path': [p.to_repr() for p in self.path],
         }
